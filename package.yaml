@@ -1,0 +1,17 @@
+name: hus
+version: 0.1.0
+
+ghc-options: -Wall
+
+dependencies:
+  - base
+  - containers
+  - diagrams-contrib
+  - diagrams-svg
+  - flow
+  - mtl
+  - vector
+
+executable:
+  main: Main.hs
+  source-dirs: app
