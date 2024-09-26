@@ -197,15 +197,17 @@ doMove _ _ = error "Illegal move"
 
 --------------------------------------------------------------------------------
 
-type LegalMoves = Int
+type LegalMoves = [Move]
 type Node = (Move, Game, LegalMoves)
 type Tree = T.Tree Node
 
 buildTree :: Node -> Tree
 buildTree =
-  T.unfoldTree (\node@(_, game, _) ->
-  legalMoves game
-  |> map (\m -> let g = doMove m game in (m, g, legalMoves g |> length))
+  T.unfoldTree (\node@(_, game, moves) ->
+  moves
+  |> map (\move ->
+    let game' = doMove move game
+    in (move, game', legalMoves game'))
   |> (node,))
 
 pruneTree :: Int -> Tree -> Tree
@@ -215,7 +217,7 @@ pruneTree depth tree
 
 exampleTree :: Tree
 exampleTree =
-  (MoveStop, initialGame, legalMoves initialGame |> length)
+  (MoveStop, initialGame, legalMoves initialGame)
   |> buildTree |> pruneTree 4
 
 -- printTree = D.renderTree _
