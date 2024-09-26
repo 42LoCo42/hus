@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedRecordDot #-}
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TupleSections       #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
 module Main where
@@ -8,12 +8,11 @@ import qualified Control.Monad.State.Strict as S
 import qualified Data.Tree                  as T
 import qualified Data.Vector.Unboxed        as V
 
-import qualified Diagrams.TwoD.Layout.Tree as D
-
-import Data.Maybe       (fromJust, fromMaybe, isJust, isNothing)
-import Data.Word        (Word8)
-import Flow             ((.>), (|>))
-import Text.Printf      (printf)
+import           Data.Maybe                 (fromJust, fromMaybe, isJust,
+                                             isNothing)
+import           Data.Word                  (Word8)
+import           Flow                       ((.>), (|>))
+import           Text.Printf                (printf)
 
 --------------------------------------------------------------------------------
 
@@ -198,14 +197,15 @@ doMove _ _ = error "Illegal move"
 
 --------------------------------------------------------------------------------
 
-type Node = (Move, Game)
+type LegalMoves = Int
+type Node = (Move, Game, LegalMoves)
 type Tree = T.Tree Node
 
 buildTree :: Node -> Tree
 buildTree =
-  T.unfoldTree (\node@(_, game) ->
+  T.unfoldTree (\node@(_, game, _) ->
   legalMoves game
-  |> map (\m -> (m, doMove m game))
+  |> map (\m -> let g = doMove m game in (m, g, legalMoves g |> length))
   |> (node,))
 
 pruneTree :: Int -> Tree -> Tree
@@ -214,9 +214,11 @@ pruneTree depth tree
   | otherwise  = tree { T.subForest = map (pruneTree (depth - 1)) tree.subForest }
 
 exampleTree :: Tree
-exampleTree = (MoveStop, initialGame) |> buildTree |> pruneTree 4
+exampleTree =
+  (MoveStop, initialGame, legalMoves initialGame |> length)
+  |> buildTree |> pruneTree 4
 
-printTree = D.renderTree _
+-- printTree = D.renderTree _
 
 --------------------------------------------------------------------------------
 
